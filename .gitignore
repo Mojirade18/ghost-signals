@@ -1,0 +1,6 @@
+.venv/
+.env
+workdir/
+__pycache__/
+*.vvp
+.pytest_cache/
