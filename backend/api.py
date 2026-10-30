@@ -2,7 +2,7 @@
 
 import sys
 from pathlib import Path
-
+from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -56,3 +56,6 @@ def investigate(case_id: str):
         "ghost": explanation,
         "ghost_error": ghost_error,
     }
+
+# Serve the web page from the frontend folder (must stay last).
+app.mount("/", StaticFiles(directory=ROOT / "frontend", html=True), name="frontend")

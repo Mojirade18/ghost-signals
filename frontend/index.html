@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghost Signals</title>
+<style>
+  :root {
+    --bg: #0b0d14; --panel: #141826; --line: #252b42;
+    --text: #e6e9f5; --muted: #8b93b3;
+    --ghost: #9be7ff; --bad: #ff6b81; --good: #5ee6a8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: radial-gradient(circle at 50% 0%, #1a2040, var(--bg) 60%);
+    color: var(--text); font-family: system-ui, Segoe UI, sans-serif;
+    min-height: 100vh; padding: 24px 16px 60px;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { text-align: center; margin: 8px 0 4px; letter-spacing: 1px; }
+  .sub { text-align: center; color: var(--muted); margin-bottom: 28px; }
+  .float { display: block; text-align: center; font-size: 56px;
+           animation: bob 3s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-8px); } }
+  .buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+  button {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    padding: 12px 18px; border-radius: 10px; font-size: 15px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--ghost); }
+  button:disabled { opacity: .5; cursor: wait; }
+  .card { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .card h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: 1px;
+             text-transform: uppercase; color: var(--muted); }
+  .verdict { font-size: 22px; font-weight: 700; }
+  .verdict.fail { color: var(--bad); } .verdict.pass { color: var(--good); }
+  .stats { color: var(--muted); margin-top: 6px; }
+  .failure { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+  code { background: #0b0d14; padding: 2px 6px; border-radius: 4px; }
+  .ghost-card { border-color: #2c5a6b; }
+  .ghost-text p { margin: 0 0 10px; line-height: 1.55; }
+  .ghost-text strong { color: var(--ghost); }
+  .error { color: var(--bad); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <span class="float">👻</span>
+  <h1>Ghost Signals</h1>
+  <p class="sub">A detective finds the hardware bug. A ghost explains it.</p>
+
+  <div class="buttons" id="buttons"></div>
+  <div id="status" class="sub"></div>
+
+  <div id="results" class="hidden">
+    <div class="card" id="evidence"></div>
+    <div class="card ghost-card">
+      <h2>The ghost says</h2>
+      <div class="ghost-text" id="ghost"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const NAMES = {
+    good_alu: "Healthy ALU",
+    sub_carry_bug: "Haunted ALU (subtract carry)"
+  };
+  const $ = (id) => document.getElementById(id);
+
+  function el(tag, text, cls) {
+    const e = document.createElement(tag);
+    if (text !== undefined) e.textContent = text;
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  // Safe text: turns **bold** into <strong>, never inserts raw HTML.
+  function renderGhost(text) {
+    const box = $("ghost");
+    box.replaceChildren();
+    text.replace(/`/g, "").split(/\n+/).forEach((line) => {
+      if (!line.trim()) return;
+      const p = el("p");
+      line.split(/\*\*(.+?)\*\*/g).forEach((part, i) => {
+        p.appendChild(i % 2 ? el("strong", part) : document.createTextNode(part.replace(/\*/g, "")));
+      });
+      box.appendChild(p);
+    });
+  }
+
+  function renderEvidence(report) {
+    const box = $("evidence");
+    box.replaceChildren(el("h2", "Detective's evidence"));
+    box.appendChild(el("div", report.verdict, "verdict " + (report.verdict === "PASS" ? "pass" : "fail")));
+    box.appendChild(el("div", `${report.design}: ${report.passed} of ${report.total} tests passed`, "stats"));
+
+    report.failures.forEach((f) => {
+      const d = el("div", undefined, "failure");
+      d.appendChild(el("strong", `${f.test_id} (${f.operation}) with a=${f.inputs.a}, b=${f.inputs.b}`));
+      f.mismatches.forEach((m) => {
+        d.appendChild(el("div", `${m.signal}: expected ${m.expected}, got ${m.actual}`, "stats"));
+      });
+      box.appendChild(d);
+    });
+  }
+
+  async function investigate(id) {
+    const buttons = document.querySelectorAll("#buttons button");
+    buttons.forEach((b) => (b.disabled = true));
+    $("results").classList.add("hidden");
+    $("status").className = "sub";
+    $("status").textContent = "The detective is investigating... the ghost is thinking (up to 20 seconds)";
+
+    try {
+      const res = await fetch("/investigate/" + encodeURIComponent(id), { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Request failed (" + res.status + ")");
+
+      renderEvidence(data.report);
+      if (data.ghost) renderGhost(data.ghost);
+      else {
+        $("ghost").replaceChildren(el("p", data.ghost_error || "The ghost stayed silent.", "error"));
+      }
+      $("results").classList.remove("hidden");
+      $("status").textContent = "";
+    } catch (err) {
+      $("status").className = "sub error";
+      $("status").textContent = "Something went wrong: " + err.message;
+    } finally {
+      buttons.forEach((b) => (b.disabled = false));
+    }
+  }
+
+  async function loadCases() {
+    try {
+      const res = await fetch("/cases");
+      const data = await res.json();
+      data.cases.forEach((id) => {
+        const b = el("button", NAMES[id] || id);
+        b.onclick = () => investigate(id);
+        $("buttons").appendChild(b);
+      });
+    } catch (err) {
+      $("status").className = "sub error";
+      $("status").textContent = "Can't reach the server. Open this page from http://127.0.0.1:8000/";
+    }
+  }
+
+  loadCases();
+</script>
+</body>
+</html>
