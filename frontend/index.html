@@ -4,50 +4,241 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ghost Signals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0b0d14; --panel: #141826; --line: #252b42;
-    --text: #e6e9f5; --muted: #8b93b3;
-    --ghost: #9be7ff; --bad: #ff6b81; --good: #5ee6a8;
+    --sky1: #2a0a4a; --sky2: #12031f;
+    --panel: #1d1030; --panel-purple: #4b1a8c;
+    --line: #6b2fc4; --text: #f1eaff; --muted: #b9a6e0;
+    --moon: #ffd23f; --orange: #ff8a1f; --ghost: #9be7ff;
+    --bad: #ff5d7a; --good: #6dffb5;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; background: radial-gradient(circle at 50% 0%, #1a2040, var(--bg) 60%);
-    color: var(--text); font-family: system-ui, Segoe UI, sans-serif;
-    min-height: 100vh; padding: 24px 16px 60px;
+    margin: 0; min-height: 100vh; color: var(--text);
+    font-family: system-ui, "Segoe UI", sans-serif;
+    background: radial-gradient(ellipse at 50% 0%, var(--sky1), var(--sky2) 75%) fixed;
+    overflow-x: hidden; position: relative;
   }
-  main { max-width: 760px; margin: 0 auto; }
-  h1 { text-align: center; margin: 8px 0 4px; letter-spacing: 1px; }
-  .sub { text-align: center; color: var(--muted); margin-bottom: 28px; }
-  .float { display: block; text-align: center; font-size: 56px;
-           animation: bob 3s ease-in-out infinite; }
-  @keyframes bob { 50% { transform: translateY(-8px); } }
-  .buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+  body.shake { animation: shake .5s; }
+  @keyframes shake {
+    10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-7px); } 40%, 60% { transform: translateX(7px); }
+  }
+  body::before { /* twinkling stars */
+    content: ""; position: fixed; inset: 0; pointer-events: none; animation: twinkle 4s ease-in-out infinite;
+    background-image:
+      radial-gradient(1.5px 1.5px at 20% 15%, #fff8 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 70% 25%, #fff8 50%, transparent 51%),
+      radial-gradient(1px 1px at 40% 60%, #fff6 50%, transparent 51%),
+      radial-gradient(1px 1px at 85% 70%, #fff6 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 10% 80%, #fff6 50%, transparent 51%);
+  }
+  @keyframes twinkle { 50% { opacity: .35; } }
+  main { max-width: 780px; margin: 0 auto; padding: 0 16px 40px; position: relative; z-index: 2; }
+
+  /* ---- background life ---- */
+  .fog { position: fixed; left: -50%; width: 200%; height: 220px; bottom: 0; pointer-events: none; z-index: 1;
+         background: radial-gradient(ellipse at 50% 100%, #b9a6e033, transparent 70%); animation: roll 22s linear infinite; }
+  .fog.two { height: 160px; opacity: .7; animation-duration: 33s; animation-direction: reverse; }
+  @keyframes roll { from { transform: translateX(-12%); } to { transform: translateX(12%); } }
+  .drift { position: fixed; font-size: 44px; opacity: .22; pointer-events: none; z-index: 1;
+           animation: drift 26s linear infinite; filter: blur(.4px); }
+  .d1 { top: 28%; animation-delay: -4s; }
+  .d2 { top: 55%; animation-delay: -13s; font-size: 32px; animation-duration: 34s; }
+  .d3 { top: 75%; animation-delay: -20s; font-size: 52px; animation-duration: 40s; }
+  @keyframes drift {
+    from { left: -8%; transform: translateY(0) rotate(-6deg); }
+    50% { transform: translateY(-40px) rotate(6deg); }
+    to { left: 108%; transform: translateY(10px) rotate(-6deg); }
+  }
+  .ember { position: fixed; bottom: -20px; width: 6px; height: 6px; border-radius: 50%; pointer-events: none; z-index: 1;
+           background: var(--orange); box-shadow: 0 0 10px 3px #ff8a1f99; animation: rise linear infinite; }
+  @keyframes rise { to { transform: translate(var(--dx), -105vh); opacity: 0; } }
+  .flash { position: fixed; inset: 0; background: #e8dcff; opacity: 0; pointer-events: none; z-index: 6; }
+  .flash.go { animation: bolt .9s ease-out; }
+  @keyframes bolt { 0% { opacity: 0; } 8% { opacity: .55; } 14% { opacity: .05; } 22% { opacity: .4; } 100% { opacity: 0; } }
+
+  /* ---- big bats across the whole screen ---- */
+  .bat { position: fixed; left: -10%; z-index: 3; pointer-events: none; font-size: 64px;
+         animation: fly 11s linear infinite; filter: drop-shadow(0 0 14px #b04dff); }
+  .b1 { top: 7vh; }
+  .b2 { top: 18vh; font-size: 46px; animation-duration: 9s; animation-delay: -4s; }
+  .b3 { top: 32vh; font-size: 80px; animation-duration: 14s; animation-delay: -7s; }
+  @keyframes fly {
+    from { left: -10%; transform: translateY(0) scaleX(1); }
+    25% { transform: translateY(22px) scaleX(.7); } 50% { transform: translateY(-4px) scaleX(1); }
+    75% { transform: translateY(20px) scaleX(.7); } to { left: 105%; transform: translateY(-6px) scaleX(1); }
+  }
+
+  /* ---- glowing pumpkins ---- */
+  .pumpkin { position: fixed; bottom: -14px; z-index: 1; pointer-events: none; animation: flame 3.2s ease-in-out infinite; }
+  .p1 { left: -30px; width: clamp(130px, 22vw, 260px); }
+  .p2 { right: -20px; width: clamp(150px, 26vw, 320px); animation-delay: -1.4s; }
+  .p3 { left: 17vw; bottom: -8px; width: clamp(80px, 12vw, 150px); animation-delay: -2.2s; }
+  @keyframes flame {
+    0%, 100% { filter: drop-shadow(0 0 18px #b04dffaa); }
+    45% { filter: drop-shadow(0 0 36px #d58bff); }
+    60% { filter: drop-shadow(0 0 12px #8a2be2aa); }
+  }
+
+  /* ---- zombies walking out of the screen ---- */
+  .zombie { position: fixed; left: 50%; bottom: 24vh; width: 0; z-index: 4; pointer-events: none;
+            opacity: 0; transform-origin: 50% 100%; animation: approach 16s ease-in infinite; }
+  .zombie.z2 { --sx: 32vw; animation-delay: -8s; }
+  .zombie span { display: block; width: 120px; margin-left: -60px; text-align: center; font-size: 90px;
+                 animation: walk .9s ease-in-out infinite;
+                 filter: drop-shadow(0 0 18px #7cff6b88) drop-shadow(0 12px 10px #000a); }
+  @keyframes approach {
+    0%   { transform: translate(var(--sx, -30vw), 0) scale(.12); opacity: 0; }
+    8%   { opacity: .9; }
+    80%  { transform: translate(-2vw, 18vh) scale(2.6); opacity: 1; }
+    92%  { transform: translate(0, 26vh) scale(3.6); opacity: .8; }
+    100% { transform: translate(0, 30vh) scale(4.4); opacity: 0; }
+  }
+  @keyframes walk {
+    0%, 100% { transform: rotate(-9deg) translateY(0); }
+    25%, 75% { transform: rotate(0) translateY(-8px); }
+    50% { transform: rotate(9deg) translateY(0); }
+  }
+
+  /* ---- hero ---- */
+  .hero { position: relative; height: 230px; margin-top: 10px; }
+  .moon {
+    position: absolute; left: 50%; top: 8px; width: 170px; height: 170px;
+    transform: translateX(-50%); border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #fff2a8, var(--moon) 70%);
+    box-shadow: 0 0 60px 20px #ffd23f55, 0 0 140px 50px #ffd23f22; animation: pulse 5s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { box-shadow: 0 0 80px 30px #ffd23f77, 0 0 180px 70px #ffd23f33; } }
+  .castle { position: absolute; left: 50%; bottom: 0; width: 300px; transform: translateX(-50%); }
+  .win { animation: flick 3s steps(1) infinite; }
+  .w2 { animation-delay: -1s; } .w3 { animation-delay: -2s; }
+  .w4 { animation-delay: -.5s; } .w5 { animation-delay: -1.7s; }
+  @keyframes flick { 0% { opacity: 1; } 30% { opacity: .25; } 38% { opacity: 1; } 70% { opacity: .6; } 80% { opacity: 1; } }
+  .spider { position: absolute; top: 0; right: 12%; width: 2px; background: #cdbbee;
+            height: 60px; transform-origin: top; animation: dangle 3s ease-in-out infinite; }
+  .spider span { position: absolute; bottom: -22px; left: -11px; font-size: 22px; }
+  @keyframes dangle { 50% { height: 95px; } }
+
+  h1 {
+    font-family: Creepster, "Impact", sans-serif; font-weight: 400;
+    font-size: clamp(44px, 9vw, 72px); text-align: center; margin: 4px 0 2px;
+    color: #fff; letter-spacing: 3px; animation: glow 3.5s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% { text-shadow: 0 0 12px var(--line), 3px 3px 0 var(--panel-purple); }
+    50% { text-shadow: 0 0 26px #b57bff, 0 0 40px #6b2fc4, 3px 3px 0 var(--panel-purple); }
+  }
+  .sub { text-align: center; color: var(--muted); margin: 0 0 24px; }
+
+  /* ---- buttons ---- */
+  .buttons { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 22px; }
   button {
-    background: var(--panel); color: var(--text); border: 1px solid var(--line);
-    padding: 12px 18px; border-radius: 10px; font-size: 15px; cursor: pointer;
+    background: linear-gradient(180deg, #7a35e0, var(--panel-purple));
+    color: #fff; border: 2px solid #a874ff; padding: 13px 22px;
+    border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 5px 0 #2b0e57, 0 10px 24px #0008; transition: transform .1s, box-shadow .1s;
   }
-  button:hover:not(:disabled) { border-color: var(--ghost); }
+  button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #2b0e57, 0 12px 28px #ff8a1f55; }
+  button:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 #2b0e57; }
   button:disabled { opacity: .5; cursor: wait; }
-  .card { background: var(--panel); border: 1px solid var(--line);
-          border-radius: 12px; padding: 18px; margin-bottom: 16px; }
-  .card h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: 1px;
-             text-transform: uppercase; color: var(--muted); }
-  .verdict { font-size: 22px; font-weight: 700; }
-  .verdict.fail { color: var(--bad); } .verdict.pass { color: var(--good); }
+  #sound { position: fixed; top: 12px; right: 12px; z-index: 10; padding: 9px 14px; font-size: 14px; }
+  #status { min-height: 24px; }
+  .thinking { animation: blink 1.2s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+
+  /* ---- panels ---- */
+  .card {
+    position: relative; margin: 30px 0 18px; padding: 26px 22px 20px 78px;
+    background: var(--panel); border: 2px solid #3b2268; border-radius: 16px; box-shadow: 0 8px 28px #0007;
+    animation: pop .5s cubic-bezier(.2, 1.4, .4, 1);
+  }
+  @keyframes pop { from { transform: scale(.85) translateY(20px); opacity: 0; } }
+  .card.purple { background: linear-gradient(135deg, #5a1fb0, #3a1273); border-color: #8a4fe8; animation-delay: .25s; animation-fill-mode: backwards; }
+  .badge { position: absolute; left: 14px; top: -22px; font-size: 52px; line-height: 1;
+           filter: drop-shadow(0 6px 6px #0009); animation: bob 3s ease-in-out infinite; }
+  .candy { position: absolute; right: 14px; top: -14px; font-size: 26px; animation: bob 2.4s ease-in-out infinite reverse; }
+  @keyframes bob { 50% { transform: translateY(-6px) rotate(-6deg); } }
+  .card h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .verdict { font-family: Creepster, Impact, sans-serif; font-size: 34px; letter-spacing: 2px; }
+  .verdict.fail { color: var(--bad); text-shadow: 0 0 14px #ff5d7a88; animation: throb 1.4s ease-in-out infinite; }
+  .verdict.pass { color: var(--good); text-shadow: 0 0 14px #6dffb588; }
+  @keyframes throb { 50% { text-shadow: 0 0 28px #ff5d7acc; transform: scale(1.04); } }
   .stats { color: var(--muted); margin-top: 6px; }
-  .failure { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
-  code { background: #0b0d14; padding: 2px 6px; border-radius: 4px; }
-  .ghost-card { border-color: #2c5a6b; }
-  .ghost-text p { margin: 0 0 10px; line-height: 1.55; }
+  .failure { border-top: 1px dashed #5b3a96; padding-top: 12px; margin-top: 12px; }
+  .ghost-text p { margin: 0 0 10px; line-height: 1.6; opacity: 0; animation: appear .8s ease-out forwards; }
+  @keyframes appear { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
   .ghost-text strong { color: var(--ghost); }
   .error { color: var(--bad); }
   .hidden { display: none; }
+
+  footer { text-align: center; font-size: 34px; letter-spacing: 8px; margin-top: 30px;
+           border-top: 8px solid #1a0b2e; padding-top: 10px; }
+  footer span { display: inline-block; animation: bob 2.6s ease-in-out infinite; }
+  footer span:nth-child(even) { animation-delay: -1.3s; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  @media (max-width: 520px) { .card { padding-left: 22px; padding-top: 38px; } }
 </style>
 </head>
 <body>
+<button id="sound" type="button">🔇 Sound off</button>
+<div class="flash" id="flash"></div>
+<div class="fog"></div><div class="fog two"></div>
+<span class="drift d1">👻</span><span class="drift d2">👻</span><span class="drift d3">👻</span>
+<span class="bat b1">🦇</span><span class="bat b2">🦇</span><span class="bat b3">🦇</span>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="pk" cx="50%" cy="40%" r="65%">
+      <stop offset="0" stop-color="#6a2a8f"/><stop offset="1" stop-color="#1a0630"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <symbol id="pumpkin" viewBox="0 0 200 170">
+      <rect x="92" y="4" width="16" height="28" rx="5" fill="#2a1a10"/>
+      <ellipse cx="100" cy="100" rx="92" ry="66" fill="url(#pk)"/>
+      <ellipse cx="62" cy="100" rx="38" ry="64" fill="none" stroke="#12031f" stroke-width="3" opacity=".6"/>
+      <ellipse cx="138" cy="100" rx="38" ry="64" fill="none" stroke="#12031f" stroke-width="3" opacity=".6"/>
+      <g fill="#e7a6ff" filter="url(#glow)">
+        <polygon points="45,78 80,70 62,102"/>
+        <polygon points="120,70 155,78 138,102"/>
+        <polygon points="100,98 90,114 110,114"/>
+        <path d="M42 120 L60 132 L72 122 L86 138 L100 124 L114 138 L128 122 L140 132 L158 120 L150 148 Q100 168 50 148 Z"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+<svg class="pumpkin p1" viewBox="0 0 200 170" aria-hidden="true"><use href="#pumpkin"/></svg>
+<svg class="pumpkin p2" viewBox="0 0 200 170" aria-hidden="true"><use href="#pumpkin"/></svg>
+<svg class="pumpkin p3" viewBox="0 0 200 170" aria-hidden="true"><use href="#pumpkin"/></svg>
+<div class="zombie"><span>🧟</span></div>
+<div class="zombie z2"><span>🧟</span></div>
+
 <main>
-  <span class="float">👻</span>
+  <div class="hero">
+    <div class="moon"></div>
+    <svg class="castle" viewBox="0 0 300 180" aria-hidden="true">
+      <g fill="#14061f">
+        <rect x="15" y="115" width="270" height="65"/>
+        <rect x="35" y="72" width="32" height="108"/><polygon points="30,72 51,26 72,72"/>
+        <rect x="85" y="95" width="28" height="85"/><polygon points="81,95 99,60 117,95"/>
+        <rect x="128" y="42" width="44" height="138"/><polygon points="122,42 150,0 178,42"/>
+        <rect x="187" y="95" width="28" height="85"/><polygon points="183,95 201,60 219,95"/>
+        <rect x="233" y="78" width="32" height="102"/><polygon points="228,78 249,32 270,78"/>
+      </g>
+      <g fill="#ffd23f">
+        <rect class="win w1" x="46" y="95" width="9" height="14" rx="4"/>
+        <rect class="win w2" x="141" y="70" width="10" height="16" rx="5"/>
+        <rect class="win w3" x="156" y="110" width="9" height="14" rx="4"/>
+        <rect class="win w4" x="244" y="100" width="9" height="14" rx="4"/>
+        <rect class="win w5" x="95" y="122" width="9" height="14" rx="4"/>
+      </g>
+    </svg>
+    <div class="spider"><span>🕷️</span></div>
+  </div>
+
   <h1>Ghost Signals</h1>
   <p class="sub">A detective finds the hardware bug. A ghost explains it.</p>
 
@@ -56,18 +247,18 @@
 
   <div id="results" class="hidden">
     <div class="card" id="evidence"></div>
-    <div class="card ghost-card">
+    <div class="card purple">
+      <span class="badge">👻</span><span class="candy">🍬</span>
       <h2>The ghost says</h2>
       <div class="ghost-text" id="ghost"></div>
     </div>
   </div>
+
+  <footer><span>🎃</span><span>🕸️</span><span>💀</span><span>🕸️</span><span>🎃</span></footer>
 </main>
 
 <script>
-  const NAMES = {
-    good_alu: "Healthy ALU",
-    sub_carry_bug: "Haunted ALU (subtract carry)"
-  };
+  const NAMES = { good_alu: "🕯️ Healthy ALU", sub_carry_bug: "🎃 Haunted ALU (subtract carry)" };
   const $ = (id) => document.getElementById(id);
 
   function el(tag, text, cls) {
@@ -77,13 +268,166 @@
     return e;
   }
 
-  // Safe text: turns **bold** into <strong>, never inserts raw HTML.
+  /* ================= SOUND (made by the browser, no files) ================= */
+  let ctx = null, soundOn = false, ambient = null, bellTimer = null;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function audio() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === "suspended") ctx.resume();
+    return ctx;
+  }
+
+  function tone(freq, dur, type, vol, delay, slideTo) {
+    if (!soundOn) return;
+    const c = audio(), t = c.currentTime + (delay || 0);
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || "sine";
+    o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.06, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+
+  function noiseBuffer(c, seconds) {
+    const buf = c.createBuffer(1, c.sampleRate * seconds, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  function thunder() {
+    if (!soundOn) return;
+    const c = audio(), t = c.currentTime + 0.15;
+    const src = c.createBufferSource(); src.buffer = noiseBuffer(c, 2.5);
+    const f = c.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 220;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.35, t + 0.1);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 2.3);
+    src.connect(f).connect(g).connect(c.destination);
+    src.start(t);
+  }
+
+  function ghostWoo() { // wavering "ooOOoo"
+    if (!soundOn) return;
+    const c = audio(), t = c.currentTime, dur = 1.8;
+    const o = c.createOscillator(), g = c.createGain();
+    const lfo = c.createOscillator(), lfoGain = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(260, t);
+    o.frequency.linearRampToValueAtTime(520, t + 0.8);
+    o.frequency.linearRampToValueAtTime(230, t + dur);
+    lfo.frequency.value = 6; lfoGain.gain.value = 14;
+    lfo.connect(lfoGain).connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.1, t + 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.destination);
+    o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+  }
+
+  function zombieGroan() { // low, slow groan as a zombie gets close
+    if (!soundOn) return;
+    const c = audio(), t = c.currentTime, dur = 1.6;
+    const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(95, t);
+    o.frequency.linearRampToValueAtTime(60, t + dur);
+    f.type = "lowpass";
+    f.frequency.setValueAtTime(500, t);
+    f.frequency.linearRampToValueAtTime(180, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(f).connect(g).connect(c.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  // Each zombie takes 16 seconds to arrive. Groan when it is almost at the screen.
+  [0.78 * 16000, 0.28 * 16000].forEach((first) => {
+    setTimeout(() => { zombieGroan(); setInterval(zombieGroan, 16000); }, first);
+  });
+
+  const sfx = {
+    hover: () => tone(900, 0.05, "triangle", 0.02),
+    click: () => { tone(420, 0.12, "square", 0.04, 0, 180); },
+    fail: () => { tone(150, 0.9, "sawtooth", 0.06, 0, 60); tone(158, 0.9, "sawtooth", 0.05, 0, 64); tone(220, 0.5, "square", 0.03, 0.05, 110); },
+    pass: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.45, "sine", 0.07, i * 0.12)),
+    bell: () => { tone(392, 2.6, "sine", 0.05); tone(784, 2.0, "sine", 0.02); }
+  };
+
+  function startAmbient() {
+    const c = audio();
+    const master = c.createGain(); master.gain.value = 0.05; master.connect(c.destination);
+    const nodes = [master];
+    [[55, 0.5], [82.5, 0.3], [110.4, 0.15]].forEach(([f, v]) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = "sine"; o.frequency.value = f; g.gain.value = v;
+      o.connect(g).connect(master); o.start(); nodes.push(o, g);
+    });
+    const lfo = c.createOscillator(), lg = c.createGain();   // slow swell
+    lfo.frequency.value = 0.12; lg.gain.value = 0.025;
+    lfo.connect(lg).connect(master.gain); lfo.start(); nodes.push(lfo, lg);
+    const wind = c.createBufferSource(); wind.buffer = noiseBuffer(c, 4); wind.loop = true;
+    const wf = c.createBiquadFilter(); wf.type = "bandpass"; wf.frequency.value = 500; wf.Q.value = 0.7;
+    const wg = c.createGain(); wg.gain.value = 0.35;
+    const wl = c.createOscillator(), wlg = c.createGain();   // wind gusts
+    wl.frequency.value = 0.08; wlg.gain.value = 300;
+    wl.connect(wlg).connect(wf.frequency); wl.start();
+    wind.connect(wf).connect(wg).connect(master); wind.start(); nodes.push(wind, wl, wf, wg, wlg);
+    ambient = nodes;
+    scheduleBell();
+  }
+  function stopAmbient() {
+    clearTimeout(bellTimer);
+    if (!ambient) return;
+    ambient.forEach((n) => { try { n.stop && n.stop(); } catch (e) {} try { n.disconnect(); } catch (e) {} });
+    ambient = null;
+  }
+  function scheduleBell() {
+    bellTimer = setTimeout(() => { if (soundOn) { sfx.bell(); scheduleBell(); } }, 14000 + Math.random() * 12000);
+  }
+
+  $("sound").onclick = () => {
+    soundOn = !soundOn;
+    if (soundOn) { audio(); startAmbient(); sfx.click(); }
+    else stopAmbient();
+    $("sound").textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+  };
+
+  /* ================= ATMOSPHERE ================= */
+  for (let i = 0; i < 16; i++) { // rising embers
+    const e = el("div", undefined, "ember");
+    e.style.left = Math.random() * 100 + "vw";
+    e.style.setProperty("--dx", (Math.random() * 120 - 60) + "px");
+    e.style.animationDuration = 7 + Math.random() * 9 + "s";
+    e.style.animationDelay = -Math.random() * 12 + "s";
+    e.style.opacity = 0.4 + Math.random() * 0.6;
+    document.body.appendChild(e);
+  }
+
+  function lightning() {
+    const f = $("flash");
+    f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
+    thunder();
+  }
+  if (!reduceMotion) {
+    (function loop() { setTimeout(() => { lightning(); loop(); }, 9000 + Math.random() * 11000); })();
+  }
+
+  /* ================= RENDERING ================= */
+  // Safe text: **bold** becomes <strong>, stray * removed, never raw HTML.
   function renderGhost(text) {
     const box = $("ghost");
     box.replaceChildren();
+    let n = 0;
     text.replace(/`/g, "").split(/\n+/).forEach((line) => {
       if (!line.trim()) return;
       const p = el("p");
+      p.style.animationDelay = n++ * 0.45 + "s";
       line.split(/\*\*(.+?)\*\*/g).forEach((part, i) => {
         p.appendChild(i % 2 ? el("strong", part) : document.createTextNode(part.replace(/\*/g, "")));
       });
@@ -92,11 +436,15 @@
   }
 
   function renderEvidence(report) {
+    const failed = report.verdict !== "PASS";
     const box = $("evidence");
-    box.replaceChildren(el("h2", "Detective's evidence"));
-    box.appendChild(el("div", report.verdict, "verdict " + (report.verdict === "PASS" ? "pass" : "fail")));
+    box.replaceChildren(
+      el("span", failed ? "🎃" : "🌟", "badge"),
+      el("span", failed ? "💀" : "🍬", "candy"),
+      el("h2", "Detective's evidence")
+    );
+    box.appendChild(el("div", failed ? "FAIL" : "PASS", "verdict " + (failed ? "fail" : "pass")));
     box.appendChild(el("div", `${report.design}: ${report.passed} of ${report.total} tests passed`, "stats"));
-
     report.failures.forEach((f) => {
       const d = el("div", undefined, "failure");
       d.appendChild(el("strong", `${f.test_id} (${f.operation}) with a=${f.inputs.a}, b=${f.inputs.b}`));
@@ -108,11 +456,12 @@
   }
 
   async function investigate(id) {
+    sfx.click();
     const buttons = document.querySelectorAll("#buttons button");
     buttons.forEach((b) => (b.disabled = true));
     $("results").classList.add("hidden");
-    $("status").className = "sub";
-    $("status").textContent = "The detective is investigating... the ghost is thinking (up to 20 seconds)";
+    $("status").className = "sub thinking";
+    $("status").textContent = "🔦 The detective is investigating... the ghost is thinking (up to 20 seconds)";
 
     try {
       const res = await fetch("/investigate/" + encodeURIComponent(id), { method: "POST" });
@@ -121,11 +470,18 @@
 
       renderEvidence(data.report);
       if (data.ghost) renderGhost(data.ghost);
-      else {
-        $("ghost").replaceChildren(el("p", data.ghost_error || "The ghost stayed silent.", "error"));
-      }
+      else $("ghost").replaceChildren(el("p", data.ghost_error || "The ghost stayed silent.", "error"));
       $("results").classList.remove("hidden");
+      $("status").className = "sub";
       $("status").textContent = "";
+
+      if (data.report.verdict === "PASS") sfx.pass();
+      else {
+        sfx.fail();
+        if (!reduceMotion) { document.body.classList.remove("shake"); void document.body.offsetWidth; document.body.classList.add("shake"); }
+      }
+      setTimeout(ghostWoo, 700);
+      $("results").scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       $("status").className = "sub error";
       $("status").textContent = "Something went wrong: " + err.message;
@@ -141,6 +497,7 @@
       data.cases.forEach((id) => {
         const b = el("button", NAMES[id] || id);
         b.onclick = () => investigate(id);
+        b.onmouseenter = sfx.hover;
         $("buttons").appendChild(b);
       });
     } catch (err) {
